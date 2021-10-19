@@ -11,10 +11,10 @@ const routes = [{
         component: Home
     },
     {
-        path: '/Login',
-        name: 'Login',
+        path: '/About',
+        name: 'About',
         component: () =>
-            import ( /* webpackChunkName: "about" */ '../views/Login.vue'),
+            import ( /* webpackChunkName: "about" */ '../views/About.vue'),
     },
     {
         path: '/Splash',
@@ -23,10 +23,22 @@ const routes = [{
             import ( /* webpackChunkName: "about" */ '../views/Splash.vue'),
     },
     {
+        path: '/Signup',
+        name: 'Signup',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/Signup.vue'),
+    },
+    {
         path: '/Password',
         name: 'Password',
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/Password.vue'),
+    },
+    {
+        path: '/OTP',
+        name: 'OTP',
+        component: () =>
+            import ( /* webpackChunkName: "about" */ '../views/OTP.vue'),
     },
     {
         path: '/Client',
@@ -46,6 +58,7 @@ const noLoginRoutes = {
     "About": 1,
     "Message": 1,
     "Splash": 1,
+    "Signup": 1,
     //"Password": 1,
 };
 

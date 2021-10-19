@@ -1,4 +1,4 @@
-//import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import Bowser from "bowser";
 
 const production = process.env.NODE_ENV === 'production' ? true : false;
@@ -8,7 +8,10 @@ const persistedProps = [
     "email",
     "deviceid",
     "deviceName",
-    "activationkey"
+    "activationkey",
+    "authUserPreference",
+    "menuBtnLeft",
+    "menuBtnTop",
 ];
 const loginProps = [
     "isAuthenticated",
@@ -18,19 +21,28 @@ const loginProps = [
     "clientauthtype",
     "passwordValidated",
     "biometricValidated",
-    "authUserPreference"
+    "secondauthmethod",
+    "isCancelBiometric",
+    "isCancelOTP",
+    "isCancelPassword",
+    "canSetOTPToken",
+    "canSetBiometricToken",
 ];
+
+const DEVICE_TYPE = "Desktop";
 
 const appData = {
 
     // configuration
     //postURL: "/",
+    production: production,
     postURL: production ? "/" :  "http://127.0.0.1/", //"http://labil.nubosoftware.com:8080/",
     proxyURL: production ? null : "http://127.0.0.1:9080/", //"http://localhost:9080/",
     //proxyURL: null,
 
     // loaded users params
     appName: "Nubo Desktop",
+    appVersion: "3.1.01",
     
     firstname: "",
     lastname: "",
@@ -38,7 +50,18 @@ const appData = {
     deviceid: "",
     deviceName: "",
     activationkey: "",
+    menuBtnLeft: 0,
+    menuBtnTop: 0,
+
+
     authComplete: "",
+    secondauthmethod: "",
+    isCancelBiometric: false,
+    isCancelOTP: false,
+    isCancelPassword: false,
+    canSetOTPToken: false,
+    canSetBiometricToken: false,
+    deviceType: DEVICE_TYPE,
 
     // validation params
     
@@ -69,11 +92,11 @@ const appData = {
         if (appData.isAuthenticated == "false") appData.isAuthenticated = false;
         console.log(`Loading app data appData.isAuthenticated: ${appData.isAuthenticated}`);
         
-        /*if (!appData.deviceid || appData.deviceid == "") {
+        if (!appData.deviceid || appData.deviceid == "") {
             appData.deviceid = uuidv4();
             localStorage.setItem("deviceid", appData.deviceid);
-            //console.log("appData.deviceid: " + appData.deviceid);
-        }*/
+            console.log("appData.deviceid: " + appData.deviceid);
+        }
 
         if (!appData.deviceName || appData.deviceName == "") {
             let parsedUserAgent = Bowser.parse(navigator.userAgent);
@@ -89,9 +112,12 @@ const appData = {
             appData[prop] = '';
         }
     },
-    logout: () => {
+    deleteAll: () => {
         for (const prop of persistedProps) {
-            localStorage.setItem(prop, "");
+            appData[prop] = '';
+        }
+        for (const prop of loginProps) {
+            appData[prop] = '';
         }
         appData.commit();
         appData.load();

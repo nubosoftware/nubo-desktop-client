@@ -71,7 +71,7 @@ let page = {
           console.log(response.data);
 
           if (response.data.status == 1) {
-            this.loaddingText = this.$t("Loading desktop...");
+            this.loaddingText = this.$t("Loading your remote desktop...");
             this.dialog = true;
             this.$forceUpdate();
             console.log("Session started!");
@@ -88,8 +88,18 @@ let page = {
 
             // Get display div from document
             var display = document.getElementById("display");
-            //let guac = 
-            this.guac = new GuacClient(display,x,y,sessID,"ws://localhost/guacWebSocket");
+
+            const protocol = (location.protocol == "http:" ? "ws:" : "wss:");
+            //const port = (location.port != "" ? `:${location.port}` : "");
+            let wsURL;
+            if (appData.production) {
+              wsURL = `${protocol}//${location.host}/guacWebSocket`;
+            } else {
+              wsURL = "ws://127.0.0.1/guacWebSocket";
+            }
+           
+            console.log(`wsURL: ${wsURL}, location.host: ${location.host}`);
+            this.guac = new GuacClient(display,x,y,sessID,wsURL);
             
             this.guac.onstatechange = (state) => {
               console.log(`this.guac.onstatechange: ${state}`);
@@ -109,7 +119,15 @@ let page = {
   },
   methods: {
 
-  }
+  },
+  /*eslint no-unused-vars: ["error", {"args": "after-used"}]*/
+  beforeRouteLeave (to, from, next) { 
+    console.log(`Client beforeRouteLeave.`);
+    if (this.guac) {
+      this.guac.end();
+    }
+    next();
+   }
 }
 
 export default page;

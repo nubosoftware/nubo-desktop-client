@@ -2,8 +2,9 @@
   <v-app id="inspire" color="bg" >
     <v-main >
       <!--  -->
-      <router-view @updatePage="updatePage" @checkLoginLoop="checkLoginLoop" ></router-view>
+      <router-view @updatePage="updatePage" ></router-view>
     </v-main>
+    <floating-menu></floating-menu>
   </v-app>
 </template>
 <style scoped>
@@ -13,6 +14,8 @@
 <script>
 import appData from "./modules/appData";
 //import appUtils from "./modules/appUtils";
+import FloatingMenu from "./components/FloatingMenu.vue"
+
 
 export default {
   data: () => ({
@@ -21,15 +24,14 @@ export default {
     menuItems: [],
     appData,
   }),
+  components: {
+    FloatingMenu
+  },
   methods: {
     updatePage: function () {
       
     },
   
-    logoutClick: function () {
-      appData.logout();
-      this.$router.push("/Login");
-    },
     //checkLoginLoop: function(prevLoginToken){
       //console.log("checkLoginLoop: "+prevLoginToken);
       //let thisPage = this;

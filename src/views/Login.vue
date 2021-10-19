@@ -209,9 +209,7 @@ export default {
             this.messageText = this.$t("A verification messaage has been sent to your email address. Please click the verification link in that email.");
             this.checkValidationLoop();
           } else {
-            this.messageText = this.$t(
-              "Reset password error"
-            );
+            this.messageText = this.$t("Reset password error");
             this.msgType = "error";
             console.log("Error");
             
@@ -252,9 +250,7 @@ export default {
                 this.checkValidationLoop();
                 
               } else if (response.data.status != 1) {
-                this.messageText = this.$t(
-                  "Incorrect email address or password"
-                );
+                this.messageText = this.$t("Incorrect email address or password");
                 this.msgType = "error";
                 console.log("Error");
               } else {

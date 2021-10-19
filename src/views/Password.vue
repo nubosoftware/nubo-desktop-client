@@ -20,8 +20,15 @@
             <div class="d-flex justify-center mb-6 text-subtitle-1">
               {{ messageText }}
             </div>
+            <div v-if="alertText != ''">
+              <v-alert :type="alertType">
+                {{ alertText }}
+              </v-alert>
+            </div>
             <div>
-              <v-form v-model="valid" ref="form">
+              <v-form v-model="valid" ref="form"
+                autocomplete="off"
+              >
                 <v-text-field
                   v-if="!resetPassword"
                   :label="$t('Enter your password')"
@@ -34,20 +41,34 @@
                   :rules="passwordRules"
                   counter
                   required
+                  autocomplete="chrome-off"
+                  ref="passwordField"
                 ></v-text-field>
                 <v-text-field
                   v-if="!resetPassword && setPassword"
                   :label="$t('Re-enter your password')"
                   v-model="passwordCheck"
                   min="8"
-                  :append-icon="e2 ? 'eye' : 'mdi-eye-off'"
+                  :append-icon="e2 ? 'mdi-eye' : 'mdi-eye-off'"
                   :append-icon-cb="() => (e2 = !e2)"
                   @click:append="() => (e2 = !e2)"
                   :type="e2 ? 'password' : 'text'"
                   :rules="checkPasswordRules"
                   counter
                   required
+                  autocomplete="chrome-off"
                 ></v-text-field>
+                <div v-if="!resetPassword && setPassword">
+                  Required:<br/>
+{{$t("Minimum characters",{minChars: appData.passcodeminchars})}}<br/>
+<span v-if="appData.passcodetype == 1">
+{{$t("- Both upper-case and lower-case letters.")}}<br/>
+{{$t("- One or more numerical digits.")}} <br/>
+{{$t("- One or more special characters.")}}<br/>
+</span>
+<br/>
+
+                </div>
                 <v-layout justify-space-between v-if="!resetPassword">
                   <v-btn
                     @click="submit"
@@ -56,13 +77,16 @@
                       'blue darken-4 white--text': valid,
                       disabled: !valid,
                     }"
-                    >{{ $t("Login") }}</v-btn
+                    >{{ (!setPassword ? $t("Login") : $t("Set Password")) }}</v-btn
                   >
-                  <!--<a href="#" @click="resetPasswordClick">{{
-                    $t("Sign Up")
-                  }}</a>-->
+                  <a 
+                  v-if="!resetPassword && !setPassword"
+                  href="#/Password" 
+                  @click="resetPasswordClick">{{
+                    $t("Forgot Password?")
+                  }}</a>
                 </v-layout>
-                <!--
+                
                 <v-layout v-if="resetPassword">
                   <v-btn
                     class="ma-4"
@@ -73,10 +97,10 @@
                   <v-btn
                     class="ma-4"
                     color="warning"
-                    @click="resetPassword = false"
+                    @click="resetPasswordCancel"
                     >{{ $t("Cancel") }}</v-btn
                   >
-                </v-layout>-->
+                </v-layout>
               </v-form>
             </div>
           </v-card-text>
@@ -110,7 +134,8 @@ export default {
     resetPassword: false,
     setPassword: false,
     messageText: "",
-    msgType: "info",
+    alertText: "",
+    alertType: "error",
     valid: false,
     e1: true,
     e2: true,
@@ -125,42 +150,81 @@ export default {
       this.resetPassword = true;
       this.messageText = this.$t("Reset password");
     },
+    resetPasswordCancel: function() {
+      this.resetPassword = false;
+      appData.isCancelPassword = true;
+      appData.authUserPreference = LoginController.LoginConstants.AUTH_PREFERENCE_UNKNOWN;
+      appData.commit();
+      LoginController.instance.nuboAuthProcess(this);
+    },
     resetPasswordSubmit: function () {
       console.log("resetPasswordSubmit..");
+      let params = {
+        loginToken: appData.loginToken,
+      };
       appUtils
-        .post({
-          url: "api/auth/reset",
-          data: {
-            userName: this.email,
-            deviceid: appData.deviceid,
-            deviceName: appData.deviceName,
-            activationkey: appData.activationkey,
-          },
+        .get({
+          url: "resetPasscode",
+          params,
         })
         .then((response) => {
           console.log(response.data);
-          this.resetPassword = false;
-          if (response.data.status == 200) {
-            appData.activationkey = response.data.activationkey;
-            appData.email = this.email;
-            this.validationWait = true;
-            this.messageText = this.$t(
-              "A verification messaage has been sent to your email address. Please click the verification link in that email."
-            );
-            this.checkValidationLoop();
+
+          if (response.data.status == 1 || response.data.status == 2) {
+            appData.clearValidate();
+            appData.authUserPreference = LoginController.LoginConstants.AUTH_PREFERENCE_PASSWORD;
+            appData.commit();
+            this.$router.push("/Splash");
+            return;
           } else {
-            this.messageText = this.$t("Reset password error");
-            this.msgType = "error";
+            this.resetPassword = false;
+            this.setPageParams();
+            return;
+          }
+        })
+        .catch((error) => console.log(error))
+        .finally(() => (this.loading = false));
+    },
+    submitSetPassword: function() {
+      this.alertText = this.$t("Setting password");
+      this.alertType = "info";
+      let params = {
+        loginToken: appData.loginToken,
+        passcode: this.password,
+      };
+      appUtils
+        .get({
+          url: "setPasscode",
+          params,
+        })
+        .then((response) => {
+          console.log(response.data);
+          this.alertText = "";
+          if (response.data.status == 1) {
+            console.log("Password set!");
+            appData.passwordValidated = true;
+            LoginController.instance.nuboAuthProcess(this);
+          } else if (response.data.status == 0) {
+            this.alertText = this.$t("Error");
+            this.alertType = "error";
             console.log("Error");
           }
         })
-        .catch((error) => console.log(error));
+        .catch((error) => console.log(error))
+        .finally(() => (this.loading = false));
     },
     submit: function () {
-      //if (this.$refs.form.validate()) {
-      console.log("submit");
-      this.messageText = this.$t("Checking login information");
-      this.msgType = "info";
+      let isValid = this.$refs.form.validate();
+      //console.log(`isValid: ${isValid}`);
+      if (!isValid) {
+        return;
+      }
+      if (this.setPassword) {
+        this.submitSetPassword();
+        return;
+      }
+      this.alertText = this.$t("Checking login information");
+      this.alertType = "info";
       //var url = mgmtURL + "checkPasscode?loginToken=" + encodeURIComponent(loginToken) + "&passcode=" + encodeURIComponent(enterPasscode);
       let params = {
         loginToken: appData.loginToken,
@@ -173,30 +237,75 @@ export default {
         })
         .then((response) => {
           console.log(response.data);
-
+          this.alertText = "";
           if (response.data.status == 1) {
             console.log("Password checked!");
             appData.passwordValidated = true;
+            appData.authUserPreference = LoginController.LoginConstants.AUTH_PREFERENCE_PASSWORD;
+            appData.commit();
             LoginController.instance.nuboAuthProcess(this);
           } else if (response.data.status == 0) {
-            this.messageText = this.$t("Incorrect password");
-            this.msgType = "error";
+            this.alertText = this.$t("Incorrect password");
+            this.alertType = "error";
             console.log("Error");
+          } else {
+            // this is other error - most probably password locked. Go again to validate
+            this.$router.push("/Splash");
           }
         })
         .catch((error) => console.log(error))
         .finally(() => (this.loading = false));
     },
+    setPageParams() {
+      this.setPassword = appData.passcodeActivationRequired;
+      if (this.setPassword) {
+        this.messageText = this.$t('Create your password.');
+        this.passwordRules = [
+          (v) => !!v || this.$t("Password is required"),
+          (v) => v.length >= appData.passcodeminchars || this.$t("Minimum characters",{minChars: appData.passcodeminchars}),
+          (v) => {
+            if (appData.passcodetype == 1) {
+              let upper =  /[A-Z]+/.test(v);
+              let lower =  /[a-z]+/.test(v);
+              if (!upper || !lower) {
+                return this.$t("Required: both upper-case and lower-case letters");
+              }
+              if (!/[0-9]+/.test(v)) {
+                return this.$t("Required: one or more numerical digits.");
+              }
+              if (!/[$&+,:;=\\?@#|/'<>.^*_~{}()%!-]/.test(v)) {
+                return this.$t("Required: one or more special characters.");
+              }
+              return true;
+            } else {
+              return true;
+            }
+          }
+        ];
+      } else {
+        this.messageText = this.$t('Enter your password.');
+        this.passwordRules = [(v) => !!v || this.$t("Password is required")];
+      }
+
+      
+      this.checkPasswordRules = [
+        (v) => !!v || this.$t("Password is required"),
+        (v) => v === this.password || "Passwords do not match",
+      ];
+    }
   },
   watch: {},
   created: function () {
-    this.passwordRules = [(v) => !!v || this.$t("Password is required")];
-    this.checkPasswordRules = [
-      (v) => !!v || this.$t("Password is required"),
-      (v) => v === this.password || "Passwords do not match",
-    ];
+    this.setPageParams();
+    
 
     //this.$emit("updatePage", "Login");
   },
+  mounted: function () {
+    this.$refs["passwordField"].$refs.input.focus();
+    this.$refs["passwordField"].$refs.input.setAttribute("autocomplete","none");
+    this.$refs["form"].$refs.form.setAttribute("autocomplete","false");
+    
+  }
 };
 </script>

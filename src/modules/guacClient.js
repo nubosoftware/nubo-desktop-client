@@ -67,6 +67,8 @@ class GuacClient {
             guac.disconnect();
         }
 
+        this.guac = guac;
+
         // Mouse
         var mouse = new Guacamole.Mouse(this.display);
 
@@ -92,7 +94,7 @@ class GuacClient {
                     startAudio = false;
                     console.log('play audio')
                 })
-            };*/keyboard
+            };*/
 
         };
         mouse.onmousedown = handleMouseEvent;
@@ -106,18 +108,38 @@ class GuacClient {
         // Keyboard
         var keyboard = new Guacamole.Keyboard(document);
 
-        keyboard.onkeydown = function (keysym) {
+
+        const keyDownFunc = function (keysym) {
             //console.log("onkeydown");
             //console.log(keysym);
             guac.sendKeyEvent(1, keysym);
 
         };
-
-        keyboard.onkeyup = function (keysym) {
+        keyboard.onkeydown = keyDownFunc;   
+        keyboard.onkeyup = keyUpFunc;
+        
+        const keyUpFunc = function (keysym) {
             //console.log("onkeyup");
             //console.log(keysym);
             guac.sendKeyEvent(0, keysym);
         };
+
+        this.onEnd = function () {
+            console.log('GuacClient. onEnd..');
+            keyboard.onkeydown = null;   
+            keyboard.onkeyup = null;
+            mouse.onmousedown = null;
+            mouse.onmouseup = null;
+            mouse.onmousemove = null;
+            guac.disconnect();
+        }
+    }
+
+
+    end() {
+        if (this.onEnd) {
+            this.onEnd();
+        }
     }
 }
 

@@ -68,6 +68,7 @@ class LoginController {
             if (appData.passwordValidated || appData.biometricValidated) {
                 authComplete = true;
             } else {
+                console.log(`appData.authUserPreference: ${appData.authUserPreference}`);
                 if (appData.authUserPreference != LoginConstants.AUTH_PREFERENCE_PASSWORD) {
                     if (this.tryBiometricOTPAuth(caller)) {
                         return true;
@@ -81,7 +82,8 @@ class LoginController {
             authComplete = true;
         }
 
-        appData.authComplete = true;
+        appData.authComplete = authComplete;
+
         if (authComplete) {
             caller.$router.push("/Client");
             return true;
@@ -92,11 +94,35 @@ class LoginController {
     }
 
     tryPassword(caller) {
-        caller.$router.push("/Password");
-        return true;
+        if (!appData.isCancelPassword) {
+            caller.$router.push("/Password");
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    tryBiometricOTPAuth() {
+    tryBiometricOTPAuth(caller) {
+        /*if (appData.authUserPreference == LoginConstants.AUTH_PREFERENCE_BIOMETRIC && !appData.isCancelBiometric) {
+            if (appData.secondauthmethod ==  LoginConstants.SECOND_AUTH_METOD_BIOMETRIC || appData.secondauthmethod == LoginConstants.SECOND_AUTH_METOD_BIOMETRIC_OR_OTP) {
+                caller.$router.push("/Biometric");
+                return true;
+            }
+        }*/
+        if (!appData.isCancelOTP) {
+            if (appData.secondauthmethod ==  LoginConstants.SECOND_AUTH_METOD_OTP || appData.secondauthmethod == LoginConstants.SECOND_AUTH_METOD_BIOMETRIC_OR_OTP) {
+                caller.$router.push("/OTP");
+                return true;
+            }
+        }
+        // disable biometric as it not exists
+        /*if (!appData.isCancelBiometric) { 
+            if (appData.secondauthmethod ==  LoginConstants.SECOND_AUTH_METOD_BIOMETRIC || appData.secondauthmethod == LoginConstants.SECOND_AUTH_METOD_BIOMETRIC_OR_OTP) {
+                caller.$router.push("/Biometric");
+                return true;
+            }
+        }*/
+        
         return false;
     }
 
