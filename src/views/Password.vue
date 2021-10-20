@@ -148,7 +148,7 @@ export default {
   methods: {
     resetPasswordClick: function () {
       this.resetPassword = true;
-      this.messageText = this.$t("Reset password");
+      this.messageText = this.$t("Are you sure you want to reset your password?");
     },
     resetPasswordCancel: function() {
       this.resetPassword = false;
@@ -290,7 +290,7 @@ export default {
       
       this.checkPasswordRules = [
         (v) => !!v || this.$t("Password is required"),
-        (v) => v === this.password || "Passwords do not match",
+        (v) => v === this.password || this.$t("Passwords do not match."),
       ];
     }
   },

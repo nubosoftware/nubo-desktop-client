@@ -3,7 +3,6 @@
     <v-dialog
       v-model="dialog"
       hide-overlay
-      
       width="300"
     >
       <v-card
@@ -19,6 +18,23 @@
           ></v-progress-linear>
         </v-card-text>
       </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="msgDialog"
+      hide-overlay
+      width="500"
+    >
+    <v-card>
+    <v-alert :type="alertType"
+    border="bottom"
+      colored-border
+      elevation="2"
+      dismissible
+      v-model="alert"
+    >
+          {{ messageText }}
+    </v-alert>
+    </v-card>
     </v-dialog>
   </div>
   
@@ -44,11 +60,16 @@ import GuacClient from '../modules/guacClient.js';
 
 let page = {
   name: 'Client',
-  dialog: false,
-  loaddingText: "",
-  guac: null,
+  
   data: () => ({ 
     langs: ['iw', 'en'],
+    msgDialog: false,
+    messageText: "",
+    alertType: "info",
+    dialog: false,
+    loaddingText: "",
+    guac: null,
+    alert: true,
     appData
   }),
   created: function () {
@@ -106,12 +127,29 @@ let page = {
               if (state == 3) {
                 this.dialog = false;
                 this.$forceUpdate();
+              } else if (state = 5) {
+                this.dialog = false;
+                this.msgDialog = true;
+                this.messageText = this.$t("Remote desktop disconnected");
+                this.alertType = "warning";
               }
+            };
+
+            this.guac.onerror = (error) => {
+              console.log(`this.guac.onerror: ${error}`);
+              this.dialog = false;
+              this.msgDialog = true;
+              this.messageText = this.$t("Remote desktop error",{msg: `${error}`});
+              this.alertType = "warning";
             };
           } else  {
             console.log("Error");
             this.dialog = false;
-            alert(response.data.message);
+            //alert(response.data.message);
+            this.msgDialog = true;
+            this.messageText = this.$t("Start session error",{msg: response.data.message, code: response.data.status});
+            this.alertType = "warning";
+
           }
         })
         .catch((error) => console.log(error))
@@ -119,6 +157,19 @@ let page = {
   },
   methods: {
 
+  },
+  watch:{
+    msgDialog:function(newValue, old){
+      if(!newValue && old){
+        // Closing
+        this.$router.push("/Splash");
+      }
+    },
+    alert: function(newValue, old){
+      if(!newValue && old){
+        this.msgDialog = false;
+      }
+    },
   },
   /*eslint no-unused-vars: ["error", {"args": "after-used"}]*/
   beforeRouteLeave (to, from, next) { 

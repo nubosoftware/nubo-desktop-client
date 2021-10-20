@@ -105,9 +105,8 @@ export default {
       this.bar = bar;
       this.bodyWidth = document.body.clientWidth;
       this.bodyHeight = document.body.clientHeight;
-      this.btnLeft =  appData.menuBtnLeft;
-      this.btnTop =  appData.menuBtnTop;
-      console.log(`appData.menuBtnLeft: ${appData.menuBtnLeft}`);
+      this.btnLeft =  Number(appData.menuBtnLeft);
+      this.btnTop =  Number(appData.menuBtnTop);
       
       this.positionMenuBtn();
       elmnt.onmousedown = this.dragMouseDown;
@@ -128,7 +127,7 @@ export default {
             this.btnLeft = (this.bodyWidth / 2 ) - (this.elmnt.offsetWidth/2);
         }
         if (this.btnLeft < 0) {
-            this.btnLeft = 0;
+          this.btnLeft = 0;
           closeDrag = true;
         }
         if (this.btnLeft + this.elmnt.offsetWidth > this.bodyWidth) {
@@ -142,7 +141,6 @@ export default {
 
         appData.menuBtnLeft = this.btnLeft;
         appData.menuBtnTop = this.btnTop;
-        console.log(`appData.menuBtnLeft: ${appData.menuBtnLeft}`);
         appData.commit();
 
 

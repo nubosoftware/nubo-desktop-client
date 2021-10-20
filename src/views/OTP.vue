@@ -308,7 +308,10 @@ export default {
         console.log(`this.otpURL: ${this.otpURL}`);
       } else {
         this.messageText = this.$t("Please enter your one-time password found in the TOTP app in your mobile device.");
-        this.passwordRules = [(v) => !!v || this.$t("OTP code is required")];
+        this.passwordRules = [
+          (v) => !!v || this.$t("OTP code is required"),
+          (v) => /^[0-9]+$/.test(v) || this.$t("Please enter only digits"),
+        ];
       }
     },
   },

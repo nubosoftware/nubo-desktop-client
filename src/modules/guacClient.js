@@ -14,8 +14,18 @@ class GuacClient {
         if (!this.guacURL) {
             this.guacURL = "/guacWebSocket";
         }
+
+        var tunnel = new Guacamole.WebSocketTunnel(this.guacURL);
+        tunnel.onstatechange = function (state) {
+            console.log(`Tunnel state changed: ${state}`);
+            if (state == Guacamole.Tunnel.State.CLOSED) {
+                if (guac) {
+                    guac.disconnect();
+                }
+            }
+        }
         var guac = new Guacamole.Client(
-            new Guacamole.WebSocketTunnel(this.guacURL)
+            tunnel
         );
         //this.guac = guac;
 
