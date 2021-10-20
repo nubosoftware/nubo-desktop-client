@@ -127,7 +127,7 @@ let page = {
               if (state == 3) {
                 this.dialog = false;
                 this.$forceUpdate();
-              } else if (state = 5) {
+              } else if (state == 5) {
                 this.dialog = false;
                 this.msgDialog = true;
                 this.messageText = this.$t("Remote desktop disconnected");
