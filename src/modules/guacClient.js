@@ -43,10 +43,40 @@ class GuacClient {
 
         const thisClass = this;
 
+        const AUDIO_INPUT_MIMETYPE = 'audio/L16;rate=44100,channels=2';
+
+        var requestAudioStream = function requestAudioStream(client) {
+
+            // Create new audio stream, associating it with an AudioRecorder
+            var stream = client.createAudioStream(AUDIO_INPUT_MIMETYPE);
+            var recorder = Guacamole.AudioRecorder.getInstance(stream, AUDIO_INPUT_MIMETYPE);
+    
+            // If creation of the AudioRecorder failed, simply end the stream
+            if (!recorder)
+                stream.sendEnd();
+    
+            // Otherwise, ensure that another audio stream is created after this
+            // audio stream is closed
+            else {
+                recorder.onclose = requestAudioStream.bind(this, client);
+                console.log(`requestAudioStream. stream and recorder created!`);
+            }
+    
+        };
+
+        let videoTypes = Guacamole.VideoPlayer.getSupportedTypes();
+        let audioType = Guacamole.AudioPlayer.getSupportedTypes();
+        console.log("videoTypes",videoTypes);
+        console.log("audioType",audioType);
+        
+
         guac.onstatechange = function (state) {
             console.log(`State changed: ${state}`);
             if (thisClass.onstatechange) {
                 thisClass.onstatechange(state);
+                if (state == 3) {
+                    requestAudioStream(guac);
+                }
             }
         }
 
@@ -61,13 +91,13 @@ class GuacClient {
 
         //let startAudio = false;
 
-        guac.onaudio = function (stream,mimetype) {
-            console.log(`onaudio! mimetype: ${mimetype}`);
+        /*guac.onaudio = function (stream,mimetype) {
+            console.log(`onaudio. mimetype: ${mimetype}`);
             //return null;
             //startAudio = true;
             return null;
             
-        }
+        }*/
 
         // Connect
         guac.connect(`sessID=${this.sessID}&width=${this.width}&height=${this.height}`);
@@ -116,23 +146,39 @@ class GuacClient {
         });*/
 
         // Keyboard
+
+        var sink = new Guacamole.InputSink();
+        document.body.appendChild(sink.getElement());
+
+
         var keyboard = new Guacamole.Keyboard(document);
+        keyboard.listenTo(sink.getElement());
+        
 
 
         const keyDownFunc = function (keysym) {
-            //console.log("onkeydown");
+            console.log(`onkeydown: keysym: ${keysym}`);
             //console.log(keysym);
             guac.sendKeyEvent(1, keysym);
+            //event.preventDefault();
 
         };
-        keyboard.onkeydown = keyDownFunc;   
-        keyboard.onkeyup = keyUpFunc;
-        
+
         const keyUpFunc = function (keysym) {
             //console.log("onkeyup");
             //console.log(keysym);
             guac.sendKeyEvent(0, keysym);
         };
+
+
+        window.onblur = function() {
+            console.log(`onblur..`);
+            keyboard.reset();
+        }
+        keyboard.onkeydown = keyDownFunc;   
+        keyboard.onkeyup = keyUpFunc;
+        
+       
 
         this.onEnd = function () {
             console.log('GuacClient. onEnd..');
@@ -143,6 +189,101 @@ class GuacClient {
             mouse.onmousemove = null;
             guac.disconnect();
         }
+
+        // Automatically update the client thumbnail
+        guac.onsync = function syncReceived(ts) {
+
+            //var thumbnail = managedClient.thumbnail;
+            //var timestamp = new Date().getTime();
+
+            // Update thumbnail if it doesn't exist or is old
+            /*if (!thumbnail || timestamp - thumbnail.timestamp >= THUMBNAIL_UPDATE_FREQUENCY) {
+                $rootScope.$apply(function updateClientThumbnail() {
+                    ManagedClient.updateThumbnail(managedClient);
+                });
+            }*/
+            console.log(`onsync: ${ts}`)
+
+        };
+
+        // Test for argument mutability whenever an argument value is
+        // received
+        guac.onargv = function clientArgumentValueReceived(stream, mimetype, name) {
+
+            console.log(`onargv.  mimetype: ${mimetype}, name: ${name}`)
+            // Ignore arguments which do not use a mimetype currently supported
+            // by the web application
+            if (mimetype !== 'text/plain')
+                return;
+
+            var reader = new Guacamole.StringReader(stream);
+
+            // Assemble received data into a single string
+            var value = '';
+            reader.ontext = function textReceived(text) {
+                value += text;
+            };
+
+            // Test mutability once stream is finished, storing the current
+            // value for the argument only if it is mutable
+            reader.onend = function textComplete() {
+                /*ManagedArgument.getInstance(managedClient, name, value).then(function argumentIsMutable(argument) {
+                    managedClient.arguments[name] = argument;
+                }, function ignoreImmutableArguments() {});*/
+                console.log(`onargv.  onend. value: ${value}`);
+            };
+
+        };
+
+        // Handle any received clipboard data
+        guac.onclipboard = function clientClipboardReceived(stream, mimetype) {
+
+            console.log(`onclipboard.  mimetype: ${mimetype}`)
+            var reader;
+
+            // If the received data is text, read it as a simple string
+            if (/^text\//.exec(mimetype)) {
+
+                reader = new Guacamole.StringReader(stream);
+
+                // Assemble received data into a single string
+                var data = '';
+                reader.ontext = function textReceived(text) {
+                    data += text;
+                };
+
+                // Set clipboard contents once stream is finished
+                reader.onend = function textComplete() {
+                    /*clipboardService.setClipboard(new ClipboardData({
+                        source : managedClient.id,
+                        type : mimetype,
+                        data : data
+                    }))['catch'](angular.noop);*/
+                    console.log(`onclipboard.  onend. data: ${data}`);
+                };
+
+            }
+
+            // Otherwise read the clipboard data as a Blob
+            else {
+                reader = new Guacamole.BlobReader(stream, mimetype);
+                reader.onend = function blobComplete() {
+                    /*clipboardService.setClipboard(new ClipboardData({
+                        source : managedClient.id,
+                        type : mimetype,
+                        data : reader.getBlob()
+                    }))['catch'](angular.noop);*/
+                };
+            }
+
+        };
+    }
+
+    reportWindowSize(x,y) {
+        console.log('Send new size...');
+        this.width = x;
+        this.height = y;
+        this.guac.sendSize(this.width,this.height);
     }
 
 

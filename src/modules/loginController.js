@@ -83,6 +83,7 @@ class LoginController {
         }
 
         appData.authComplete = authComplete;
+        appData.commit();
 
         if (authComplete) {
             caller.$router.push("/Client");

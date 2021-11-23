@@ -106,6 +106,8 @@ let page = {
 
             console.log("x: "+x+", y: "+y);
 
+            
+
 
             // Get display div from document
             var display = document.getElementById("display");
@@ -142,6 +144,19 @@ let page = {
               this.messageText = this.$t("Remote desktop error",{msg: `${error}`});
               this.alertType = "warning";
             };
+
+            const reportWindowSize = () => {
+              let nx = win.innerWidth || docElem.clientWidth || body.clientWidth;
+              let ny = win.innerHeight|| docElem.clientHeight|| body.clientHeight;
+              if (nx != x || ny != y) {
+                console.log(`Resize event. x: ${nx}, y: ${ny}`);
+                x = nx;
+                y = ny;
+                this.guac.reportWindowSize(x,y);
+              }
+              
+            }
+            window.addEventListener('resize', reportWindowSize);
           } else  {
             console.log("Error");
             this.dialog = false;

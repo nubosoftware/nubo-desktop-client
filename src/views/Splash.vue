@@ -262,6 +262,7 @@ export default {
               appData.canSetOTPToken = response.data.canSetOTPToken;
               appData.canSetBiometricToken = response.data.canSetBiometricToken;
               appData.isValidated = true;
+              appData.isValidatedChecked = true;
               appData.passcodeActivationRequired =
                 response.data.passcodeActivationRequired;
               appData.passcodetype = response.data.passcodetype;

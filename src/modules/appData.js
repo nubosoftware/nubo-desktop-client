@@ -27,6 +27,7 @@ const loginProps = [
     "isCancelPassword",
     "canSetOTPToken",
     "canSetBiometricToken",
+    "sessionid"
 ];
 
 const DEVICE_TYPE = "Desktop";
@@ -67,7 +68,9 @@ const appData = {
     
     isAuthenticated: false,
     isValidated: false,
+    isValidatedChecked: false,
     loginToken: "",
+    sessionid: "",
     clientauthtype: 0,
     passwordValidated: false,
     biometricValidated: false,
@@ -80,6 +83,10 @@ const appData = {
         for (const prop of persistedProps) {
             localStorage.setItem(prop, appData[prop]);
         }
+        for (const prop of loginProps) {
+            localStorage.setItem(prop, appData[prop]);
+        }
+        
     },
     commitProp(prop) {
         localStorage.setItem(prop, appData[prop]);
@@ -88,6 +95,13 @@ const appData = {
         console.log("Loading app data..");
         for (const prop of persistedProps) {
             appData[prop] = localStorage.getItem(prop);
+        }
+        for (const prop of loginProps) {
+            appData[prop] = localStorage.getItem(prop);
+            console.log(`${prop}: ${appData[prop]}`);
+        }
+        if (!appData.loginToken) {
+            appData.clearValidate();
         }
         if (appData.isAuthenticated == "false") appData.isAuthenticated = false;
         console.log(`Loading app data appData.isAuthenticated: ${appData.isAuthenticated}`);

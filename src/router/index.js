@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import appData from '../modules/appData'
+import appUtils from "../modules/appUtils"
 
 Vue.use(VueRouter)
 
@@ -63,10 +64,38 @@ const noLoginRoutes = {
 };
 
 router.beforeEach((to, from, next) => {
-    if (!appData.isValidated && !(noLoginRoutes[to.name])) {
+    //console.log(`router.beforeEach. to: ${to.name}, from: ${from.name}`);
+    if (noLoginRoutes[to.name]) {
+        next()
+    } else if (!appData.isValidated) {
         console.log("Detect no login in route: " + to.name);
         //console.log(to);
         next({ name: 'Splash' })
-    } else next()
+    } else {
+        if (appData.isValidated && !appData.isValidatedChecked) {
+            console.log("recheckValidate for login token: " + appData.loginToken);
+            appUtils
+                .get({
+                    url: "recheckValidate",
+                    params: {
+                        loginToken: appData.loginToken,
+                    },
+                })
+                .then((response) => {
+                    console.log(`recheckValidate ressponse..`);
+                    console.log(response.data);
+                    if (response.data.status == 1) {
+                        next();
+                    } else {
+                        next({ name: 'Splash' });
+                    }
+                }).catch( (err) => {
+                    console.error(err);
+                    next({ name: 'Splash' });
+                });
+        }  else {
+            next()
+        }
+    }
 })
 export default router
