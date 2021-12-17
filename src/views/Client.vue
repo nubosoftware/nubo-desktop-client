@@ -49,7 +49,22 @@
     top: 0;
     background: rgba(51,51,51,0.7);
     z-index: 10;
+    overflow: hidden; /* Hide scrollbars */
   }
+  body, html {
+    overflow: hidden; /* Hide scrollbars */
+    overflow-y: hidden;
+  }
+  /* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge add Firefox */
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none; /* Firefox */
+}
   </style>
 
 <script>
@@ -118,7 +133,7 @@ let page = {
             if (appData.production) {
               wsURL = `${protocol}//${location.host}/guacWebSocket`;
             } else {
-              wsURL = "ws://127.0.0.1/guacWebSocket";
+              wsURL = "wss://il2.nubosoftware.com/guacWebSocket";
             }
            
             console.log(`wsURL: ${wsURL}, location.host: ${location.host}`);
