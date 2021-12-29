@@ -9,7 +9,7 @@
                 class="mx-auto"
                 max-height="50"
                 max-width="100"
-                :src="require('../assets/logo.png')"
+                :src=" ( appData.webCommon.logoURL ? appData.webCommon.logoURL : require('../assets/logo.png'))  "
               ></v-img>
             </v-toolbar>
             <div class="d-flex justify-center mb-6">
@@ -64,6 +64,12 @@
               </v-form>
               
             </div>
+            <v-container v-if="appData.webCommon.edition == 'community'">  
+              <v-divider class="ma-6"></v-divider>
+              <div class="d-flex justify-center caption">
+                Powered by: <a href="https://github.com/nubosoftware/linux-remote-desktop"> Linux Remote Desktop Open Source Project</a>
+              </div>
+            </v-container>
           </v-card-text>
         </v-card>
       </v-flex>

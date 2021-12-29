@@ -37,7 +37,7 @@ const appData = {
     // configuration
     //postURL: "/",
     production: production,
-    postURL: production ? "/" :  "http://127.0.0.1/", //"http://labil.nubosoftware.com:8080/",
+    postURL: production ? "/" :  "https://labil.nubosoftware.com/", //"http://127.0.0.1/", //"http://labil.nubosoftware.com:8080/",
     proxyURL: production ? null : "http://127.0.0.1:9080/", //"http://localhost:9080/",
     //proxyURL: null,
 
@@ -81,15 +81,19 @@ const appData = {
 
     commit: () => {
         for (const prop of persistedProps) {
-            localStorage.setItem(prop, appData[prop]);
+            appData.commitProp(prop);
         }
         for (const prop of loginProps) {
-            localStorage.setItem(prop, appData[prop]);
+            appData.commitProp(prop);
         }
-        
     },
     commitProp(prop) {
-        localStorage.setItem(prop, appData[prop]);
+        let val = appData[prop];
+        if (!val || val == "null") {
+            localStorage.removeItem(prop);
+        } else {
+            localStorage.setItem(prop, appData[prop]);
+        }
     },
     load: () => {
         console.log("Loading app data..");
@@ -136,6 +140,7 @@ const appData = {
         appData.commit();
         appData.load();
     },
+    
 
 };
 

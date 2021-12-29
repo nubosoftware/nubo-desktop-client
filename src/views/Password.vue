@@ -9,7 +9,7 @@
                 class="mx-auto"
                 max-height="50"
                 max-width="100"
-                :src="require('../assets/logo.png')"
+                :src=" ( appData.webCommon.logoURL ? appData.webCommon.logoURL : require('../assets/logo.png'))  "
               ></v-img>
             </v-toolbar>
             <div class="d-flex justify-center mb-6">

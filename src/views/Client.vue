@@ -94,9 +94,10 @@ let page = {
     }
     this.dialog = true;
     this.loaddingText = this.$t("Starting session...");
-    //
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     let params = {
         loginToken: appData.loginToken,
+        timeZone,
       };
       appUtils
         .get({

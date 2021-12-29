@@ -47,6 +47,12 @@ const routes = [{
         component: () =>
             import ( /* webpackChunkName: "about" */ '../views/Client.vue'),
     },
+    {
+        path: '/ActivationLink/:status/:activationType',
+        name: 'ActivationLink',
+        component: () =>
+            import ( '../views/ActivationLink.vue'),
+    },
     
 ]
 
@@ -60,42 +66,50 @@ const noLoginRoutes = {
     "Message": 1,
     "Splash": 1,
     "Signup": 1,
+    "ActivationLink": 1,
     //"Password": 1,
 };
 
 router.beforeEach((to, from, next) => {
+    //console.log(`navigator.language: ${navigator.language}`);
     //console.log(`router.beforeEach. to: ${to.name}, from: ${from.name}`);
-    if (noLoginRoutes[to.name]) {
-        next()
-    } else if (!appData.isValidated) {
-        console.log("Detect no login in route: " + to.name);
-        //console.log(to);
-        next({ name: 'Splash' })
-    } else {
-        if (appData.isValidated && !appData.isValidatedChecked) {
-            console.log("recheckValidate for login token: " + appData.loginToken);
-            appUtils
-                .get({
-                    url: "recheckValidate",
-                    params: {
-                        loginToken: appData.loginToken,
-                    },
-                })
-                .then((response) => {
-                    console.log(`recheckValidate ressponse..`);
-                    console.log(response.data);
-                    if (response.data.status == 1) {
-                        next();
-                    } else {
-                        next({ name: 'Splash' });
-                    }
-                }).catch( (err) => {
-                    console.error(err);
-                    next({ name: 'Splash' });
-                });
-        }  else {
+    appUtils.getWebCommon().then(() => {
+        if (noLoginRoutes[to.name]) {
             next()
+        } else if (!appData.isValidated) {
+            console.log("Detect no login in route: " + to.name);
+            //console.log(to);
+            next({ name: 'Splash' })
+        } else {
+            if (appData.isValidated && !appData.isValidatedChecked) {
+                console.log("recheckValidate for login token: " + appData.loginToken);
+                appUtils
+                    .get({
+                        url: "recheckValidate",
+                        params: {
+                            loginToken: appData.loginToken,
+                        },
+                    })
+                    .then((response) => {
+                        console.log(`recheckValidate ressponse..`);
+                        console.log(response.data);
+                        if (response.data.status == 1) {
+                            next();
+                        } else {
+                            next({ name: 'Splash' });
+                        }
+                    }).catch( (err) => {
+                        console.error(err);
+                        next({ name: 'Splash' });
+                    });
+            }  else {
+                next()
+            }
         }
-    }
+    }).catch(err => {
+        console.error("Error in getWebCommon",err);
+        next({ name: 'Splash' });
+    });
+    
 })
 export default router

@@ -9,7 +9,7 @@
                 class="mx-auto"
                 max-height="50"
                 max-width="100"
-                :src="require('../assets/logo.png')"
+                :src=" ( appData.webCommon.logoURL ? appData.webCommon.logoURL : require('../assets/logo.png'))  "
               ></v-img>
             </v-toolbar>
             <div class="d-flex justify-center mb-6">
@@ -38,7 +38,7 @@
                     }"
                     >{{ $t("Activate") }}</v-btn
                   >
-                  <a href="#/Signup" @click="signupClick">{{
+                  <a href="#/Signup" v-if="!disableSignup" @click="signupClick">{{
                     $t("Sign Up")
                   }}</a>
                 </v-layout>
@@ -56,6 +56,12 @@
                 </v-btn>
               </v-layout>
             </div>
+            <v-container v-if="edition == 'community'">  
+              <v-divider class="ma-6"></v-divider>
+              <div class="d-flex justify-center caption">
+                Powered by: <a href="https://github.com/nubosoftware/linux-remote-desktop"> Linux Remote Desktop Open Source Project</a>
+              </div>
+            </v-container>
           </v-card-text>
         </v-card>
       </v-flex>
@@ -132,6 +138,7 @@ export default {
     resetPassword: false,
     passwordLocked: false,
     setPassword: false,
+    disableSignup: false,
     messageText: "",
     msgType: "info",
     snackbarSave: false,
@@ -151,6 +158,7 @@ export default {
         "Email must be valid",
     ],
     activate_text: "",
+    edition: "",
     appData,
   }),
   methods: {
@@ -215,7 +223,7 @@ export default {
     checkValidation: function () {
       let thisPage = this;
       if (thisPage.validationWait) {
-        appData.clearValidate();
+        appData.clearValidate();        
         appUtils
           .get({
             url: "validate",
@@ -388,16 +396,18 @@ export default {
   },
   created: function () {
     this.activate_text = this.$t("Gain access to your remote desktop.");
-    this.validationWait = appData.activationkey;
+    this.validationWait = (appData.activationkey && appData.activationkey != "null");
     console.log(
       `validationWait: ${appData.validationWait}, appData.activationkey: ${appData.activationkey}`
     );
     this.email = appData.email;
+    this.disableSignup = appData.webCommon.disableSignup;
+    this.edition = appData.webCommon.edition;
     if (this.validationWait) {
       this.messageText = this.$t("Checking activation...");
       this.checkValidation();
     } else {
-      this.messageText = this.activate_text;
+      this.messageText = this.activate_text;      
     }
 
     this.passwordRules = [(v) => !!v || this.$t("Password is required")];
