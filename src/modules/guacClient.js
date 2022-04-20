@@ -64,10 +64,10 @@ class GuacClient {
     
         };
 
-        let videoTypes = Guacamole.VideoPlayer.getSupportedTypes();
-        let audioType = Guacamole.AudioPlayer.getSupportedTypes();
-        console.log("videoTypes",videoTypes);
-        console.log("audioType",audioType);
+        // let videoTypes = Guacamole.VideoPlayer.getSupportedTypes();
+        // let audioType = Guacamole.AudioPlayer.getSupportedTypes();
+        // console.log("videoTypes",videoTypes);
+        // console.log("audioType",audioType);
         
 
         guac.onstatechange = function (state) {
