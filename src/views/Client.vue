@@ -36,6 +36,29 @@
     </v-alert>
     </v-card>
     </v-dialog>
+    <v-dialog v-model="dialogRecording" max-width="800px" overlay-color="bg">
+            <v-card color="bg">
+              <v-card-title>
+                {{ $t("This remote session is being recorded now.") }}
+              </v-card-title>
+              <v-card-subtitle></v-card-subtitle>
+              <v-card-subtitle>
+                {{ $t("By staying in this session, you consent to being recorded.") }}
+              </v-card-subtitle>
+              <v-card-actions class="mx-4">
+                <v-spacer></v-spacer>
+                <v-btn color="warning" @click="leaveSession()">
+                  {{ $t("Leave Session") }}
+                </v-btn>
+                <v-btn
+                  color="primary"                  
+                  @click="dialogRecording = false"
+                >
+                  {{ $t("Got It") }}                 
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
   </div>
   
 </template>
@@ -85,6 +108,7 @@ let page = {
     loaddingText: "",
     guac: null,
     alert: true,
+    dialogRecording: false,
     appData
   }),
   created: function () {
@@ -113,6 +137,8 @@ let page = {
             this.$forceUpdate();
             console.log("Session started!");
             let sessID = response.data.sessionid;
+            let recording = response.data.recording;
+            console.log(`recording: ${recording}`);
             var win = window,
             doc = document,
             docElem = doc.documentElement,
@@ -134,7 +160,7 @@ let page = {
             if (appData.production) {
               wsURL = `${protocol}//${location.host}/guacWebSocket`;
             } else {
-              wsURL = "wss://il2.nubosoftware.com/guacWebSocket";
+              wsURL = "ws://labil.nubosoftware.com/guacWebSocket";
             }
            
             console.log(`wsURL: ${wsURL}, location.host: ${location.host}`);
@@ -173,6 +199,9 @@ let page = {
               
             }
             window.addEventListener('resize', reportWindowSize);
+            if (recording == 1 ) {
+              this.dialogRecording = true;
+            }
           } else  {
             console.log("Error");
             this.dialog = false;
@@ -187,7 +216,9 @@ let page = {
         .finally(() => (this.loading = false));
   },
   methods: {
-
+    leaveSession: function() {
+      this.$router.push("/Splash");
+    }
   },
   watch:{
     msgDialog:function(newValue, old){
