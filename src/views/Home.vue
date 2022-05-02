@@ -72,7 +72,7 @@ import appData from "../modules/appData";
 //const moment = require("moment");
 
 export default {
-  name: 'Home',
+  name: 'HomePage',
   components: {
      
     },

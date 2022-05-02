@@ -129,7 +129,7 @@ import LoginController from '../modules/loginController';
 //import LoginController from "../modules/loginController"
 
 export default {
-  name: "Password",
+  name: "PasswordPage",
   data: () => ({
     resetPassword: false,
     setPassword: false,

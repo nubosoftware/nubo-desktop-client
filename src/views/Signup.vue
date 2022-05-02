@@ -90,7 +90,7 @@ import Hex from 'crypto-js/enc-hex'
 
 
 export default {
-  name: "Signup",
+  name: "SignupPage",
   data: () => ({
     messageText: "",
     msgType: "info",

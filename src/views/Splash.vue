@@ -131,7 +131,7 @@ import Hex from "crypto-js/enc-hex";
 }
 */
 export default {
-  name: "Login",
+  name: "SplashPage",
   data: () => ({
     validationWait: false,
     validationWaitStatus: 0,

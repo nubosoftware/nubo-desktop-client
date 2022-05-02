@@ -76,7 +76,7 @@ import appUtils from "../modules/appUtils";
 import Bowser from "bowser";
 
 export default {
-  name: "Home",
+  name: "AboutPage",
   data: () => ({
     langs: ["iw", "en"],
     items: [],
