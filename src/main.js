@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import App from './App.vue'
 import vuetify from './plugins/vuetify';
+import plugins from './plugins'
 //import Vuetify from 'vuetify/lib'
 
-import router from './router'
+import initRouter from './router'
 import i18n from './i18n'
 import VueNotification from "@kugatsu/vuenotification";
 
@@ -24,6 +25,8 @@ Vue.use(VueNotification, {
         color: "white"
     }
 });
+
+let router = initRouter(plugins.pluginsRoutes);
 
 new Vue({
     vuetify,

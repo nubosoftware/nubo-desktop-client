@@ -56,9 +56,6 @@ const routes = [{
     
 ]
 
-const router = new VueRouter({
-    routes
-})
 
 
 const noLoginRoutes = {
@@ -70,46 +67,69 @@ const noLoginRoutes = {
     //"Password": 1,
 };
 
-router.beforeEach((to, from, next) => {
-    //console.log(`navigator.language: ${navigator.language}`);
-    //console.log(`router.beforeEach. to: ${to.name}, from: ${from.name}`);
-    appUtils.getWebCommon().then(() => {
-        if (noLoginRoutes[to.name]) {
-            next()
-        } else if (!appData.isValidated) {
-            console.log("Detect no login in route: " + to.name);
-            //console.log(to);
-            next({ name: 'Splash' })
-        } else {
-            if (appData.isValidated && !appData.isValidatedChecked) {
-                console.log("recheckValidate for login token: " + appData.loginToken);
-                appUtils
-                    .get({
-                        url: "recheckValidate",
-                        params: {
-                            loginToken: appData.loginToken,
-                        },
-                    })
-                    .then((response) => {
-                        console.log(`recheckValidate ressponse..`);
-                        console.log(response.data);
-                        if (response.data.status == 1) {
-                            next();
-                        } else {
-                            next({ name: 'Splash' });
-                        }
-                    }).catch( (err) => {
-                        console.error(err);
-                        next({ name: 'Splash' });
-                    });
-            }  else {
-                next()
+const initRouter = (pluginsRoutes) => {
+    for (const pluginRoute of pluginsRoutes) {
+        let found = false;
+        for (let i=0; i<routes.length; i++) {
+            if (routes[i].name === pluginRoute.name) {
+                found = true;
+                routes[i] = pluginRoute;
+                break;
             }
         }
-    }).catch(err => {
-        console.error("Error in getWebCommon",err);
-        next({ name: 'Splash' });
-    });
-    
-})
-export default router
+        if (!found) {
+            routes.push(pluginRoute);
+        }
+    }
+    const router = new VueRouter({
+        routes
+    })
+
+
+    router.beforeEach((to, from, next) => {
+        //console.log(`navigator.language: ${navigator.language}`);
+        //console.log(`router.beforeEach. to: ${to.name}, from: ${from.name}`);
+        appUtils.getWebCommon().then(() => {
+            if (noLoginRoutes[to.name]) {
+                next()
+            } else if (!appData.isValidated) {
+                console.log("Detect no login in route: " + to.name);
+                //console.log(to);
+                next({ name: 'Splash' })
+            } else {
+                if (appData.isValidated && !appData.isValidatedChecked) {
+                    console.log("recheckValidate for login token: " + appData.loginToken);
+                    appUtils
+                        .get({
+                            url: "recheckValidate",
+                            params: {
+                                loginToken: appData.loginToken,
+                            },
+                        })
+                        .then((response) => {
+                            console.log(`recheckValidate ressponse..`);
+                            console.log(response.data);
+                            if (response.data.status == 1) {
+                                next();
+                            } else {
+                                next({ name: 'Splash' });
+                            }
+                        }).catch( (err) => {
+                            console.error(err);
+                            next({ name: 'Splash' });
+                        });
+                }  else {
+                    next()
+                }
+            }
+        }).catch(err => {
+            console.error("Error in getWebCommon",err);
+            next({ name: 'Splash' });
+        });
+        
+    })
+
+    return router;
+}
+export default initRouter
+// export default router

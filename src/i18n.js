@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueI18n from 'vue-i18n'
+import plugins from './plugins'
 
 Vue.use(VueI18n)
 
@@ -13,6 +14,20 @@ function loadLocaleMessages () {
       messages[locale] = locales(key)
     }
   })
+
+  if (plugins.customLocales) {
+    console.log(`loadLocaleMessages. customLocales: ${Object.keys(plugins.customLocales).length}`);
+    for (const locale in plugins.customLocales) {     
+        console.log(`loadLocaleMessages. custom locale: ${locale}`)
+        if (messages[locale]) {
+            console.log(`loadLocaleMessages. custom locale: ${locale} already exists. merge (${Object.keys(plugins.customLocales[locale]).length} keys) with existing`)
+            messages[locale] = Object.assign(messages[locale], plugins.customLocales[locale]);
+        } else {
+          messages[locale] = plugins.customLocales[locale]      
+        }
+    }
+  }
+  
   return messages
 }
 
