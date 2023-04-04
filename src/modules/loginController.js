@@ -86,7 +86,7 @@ class LoginController {
         appData.commit();
 
         if (authComplete) {
-            caller.$router.push("/Client");
+            caller.$router.push("/WorkspaceMenu");
             return true;
         } else {
             caller.$router.push("/Splash");

@@ -48,6 +48,24 @@ const routes = [{
             import ( /* webpackChunkName: "about" */ '../views/Client.vue'),
     },
     {
+        path: '/Client/:sessionType',
+        name: 'ClientWithSessionType',
+        component: () =>
+            import ('../views/Client.vue'),
+    },
+    {
+        path: '/Client/:sessionType/:target',
+        name: 'ClientWithSessionTypeAndTarget',
+        component: () =>
+            import ( '../views/Client.vue'),
+    },
+    {
+        path: '/WorkspaceMenu',
+        name: 'WorkspaceMenu',
+        component: () =>
+            import ( '../views/WorkspaceMenu.vue'),
+    },
+    {
         path: '/ActivationLink/:status/:activationType',
         name: 'ActivationLink',
         component: () =>

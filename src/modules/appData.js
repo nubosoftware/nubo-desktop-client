@@ -12,6 +12,7 @@ const persistedProps = [
     "authUserPreference",
     "menuBtnLeft",
     "menuBtnTop",
+    "activationPrivateKey",
 ];
 const loginProps = [
     "isAuthenticated",
@@ -37,7 +38,7 @@ const appData = {
     // configuration
     //postURL: "/",
     production: production,
-    postURL: production ? "/" :  "https://labil.nubosoftware.com/", //"http://127.0.0.1/", //"http://labil.nubosoftware.com:8080/",
+    postURL: production ? "/" :  "http://labil.nubosoftware.com/" , //"http://127.0.0.1/", //"http://labil.nubosoftware.com:8080/", "http://lrdp2.nubosoftware.com/"
     proxyURL: production ? null : "http://127.0.0.1:9080/", //"http://localhost:9080/",
     //proxyURL: null,
 
@@ -51,6 +52,7 @@ const appData = {
     deviceid: "",
     deviceName: "",
     activationkey: "",
+    activationPrivateKey: undefined,
     menuBtnLeft: 0,
     menuBtnTop: 0,
 

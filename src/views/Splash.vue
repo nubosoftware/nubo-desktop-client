@@ -220,21 +220,48 @@ export default {
           .finally(() => (this.loading = false));
       }
     },
-    checkValidation: function () {
+    checkValidation: async function () {
       let thisPage = this;
+      if (appData.loginToken && appData.isValidated) {
+        console.log(`checkValidation. Check auth.. validationWait: ${thisPage.validationWait}`);
+        try {
+          let response = await appUtils.get({
+            url: "client/checkAuth/check",        
+          });
+          console.log(`checkAuth: ${response.data.status}`);
+          if (response.data.status == 1) {
+            thisPage.validationWait = false;
+            thisPage.messageText = thisPage.$t("Validated!");
+            LoginController.instance.nuboAuthProcess(thisPage);
+            return;
+          } 
+        } catch (error) {
+          console.log(`checkAuth. Error: ${error}`);
+          thisPage.validationWait = true;
+        }
+      }
       if (thisPage.validationWait) {
+        console.log(`checkValidation. validationWait: ${thisPage.validationWait}`);
+        try {
+          const privKeyData = JSON.parse(appData.activationPrivateKey);
+          const buffer = base64ToUint8Array(privKeyData.buffer);
+          const privKey = await crypto.subtle.importKey("pkcs8",buffer,privKeyData.options,false,["sign"]);
+        const jwtToken = await  appUtils.signJwt({ activationKey: appData.activationkey },privKey,{});
+        appData.privKeyCache = privKey;
+        // console.log(`jwtToken: ${jwtToken}`);
         appData.clearValidate();        
-        appUtils
+        let response = await appUtils
           .get({
-            url: "validate",
+            url: "client/auth/validate",
             params: {
               username: thisPage.email,
               deviceid: appData.deviceid,
               activationKey: appData.activationkey,
               playerVersion: "3.0.50",
+              jwt: jwtToken,
             },
           })
-          .then((response) => {
+         // .then((response) => {
             console.log(response.data);
             this.validationWaitStatus = response.data.status;
             if (response.data.status == 0) {
@@ -286,13 +313,19 @@ export default {
               thisPage.validationWait = false;
               thisPage.messageText = thisPage.$t("Gain access to your remote desktop.");
             }
-          })
-          .catch((error) => {
+          } catch (error) {
             console.log(error);
             if (thisPage.validationWait) {
               thisPage.checkValidationLoop();
             }
-          });
+          }
+          // })
+          // .catch((error) => {
+          //   console.log(error);
+          //   if (thisPage.validationWait) {
+          //     thisPage.checkValidationLoop();
+          //   }
+          // });
       }
     },
     checkValidationLoop: function () {
@@ -334,36 +367,44 @@ export default {
         })
         .catch((error) => console.log(error));
     },
-    submit: function () {
+    submit: async function () {
       //if (this.$refs.form.validate()) {
       console.log("submit");
-      this.messageText = this.$t("Checking login information");
-      this.msgType = "info";
+      try {
+        this.messageText = this.$t("Checking login information");
+        this.msgType = "info";
 
-      let deviceID = appData.deviceid;
-      let plain = this.email + "_" + deviceID;
-      //et signature = CryptoJS.HmacSHA1(
-      let signature = Hex.stringify(
-        HmacSHA1(plain, "1981abe0d32d93967648319b013b03f05a119c9f619cc98f")
-      );
-      console.log("signature=" + signature);
+        let deviceID = appData.deviceid;
+        let plain = this.email + "_" + deviceID;
+        //et signature = CryptoJS.HmacSHA1(
+        let signature = Hex.stringify(
+          HmacSHA1(plain, "1981abe0d32d93967648319b013b03f05a119c9f619cc98f")
+        );
+        console.log("signature=" + signature);
 
-      let params = {
-        deviceid: deviceID,
-        email: this.email,
-        signature: signature,
-        regid: "none",
-        alreadyUser: "Y",
-        deviceType: appData.deviceType,
-        deviceName: appData.deviceName,
-      };
+        const keyPairData = await appUtils.generateKeyPair();
+        console.dir(keyPairData);
+        appData.activationPrivateKey =  JSON.stringify(keyPairData.privateKeyExport);
+        console.log(`Private key: ${appData.activationPrivateKey}`);
 
-      appUtils
-        .get({
-          url: "activate",
-          params,
-        })
-        .then((response) => {
+        let params = {
+          deviceid: deviceID,
+          email: this.email,
+          signature: signature,
+          regid: "none",
+          alreadyUser: "Y",
+          deviceType: appData.deviceType,
+          deviceName: appData.deviceName,
+          public_key: keyPairData.publicKey
+        };
+
+        let response = await appUtils
+          .get({
+            url: "client/auth/activate",
+            params,
+          });
+
+          //.then((response) => {
           console.log(response.data);
 
           if (response.data.status == 0) {
@@ -379,14 +420,11 @@ export default {
             this.msgType = "error";
             console.log("Error");
           }
-        })
-        .catch((error) => console.log(error))
-        .finally(() => (this.loading = false));
-
-      /*} else {
-        console.log("Submit. form is not valid..");
-      }*/
-    },
+       
+    } catch (error) {
+      console.log(error);
+    }
+  },
   },
   watch: {
     /*validationWait: function (newVal) {
@@ -422,6 +460,12 @@ export default {
         this.$t("Email must be valid"),
     ];
     //this.$emit("updatePage", "Login");
-  },
+  }
 };
+
+function base64ToUint8Array(base64Contents) {
+    base64Contents = base64Contents.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '');
+    const content = atob(base64Contents);
+    return new Uint8Array(content.split('').map((c) => c.charCodeAt(0)));
+  }
 </script>

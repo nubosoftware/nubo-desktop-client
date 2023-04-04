@@ -109,6 +109,8 @@ let page = {
     guac: null,
     alert: true,
     dialogRecording: false,
+    sessionType: "",
+    target: "",
     appData
   }),
   created: function () {
@@ -116,16 +118,21 @@ let page = {
       this.$router.push("/Splash");
       return;
     }
+    this.sessionType = this.$route.params.sessionType;
+    this.target = this.$route.params.target;
+    console.log(`sessionType: ${this.sessionType}, target: ${this.target}`);
     this.dialog = true;
     this.loaddingText = this.$t("Starting session...");
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     let params = {
-        loginToken: appData.loginToken,
+        //loginToken: appData.loginToken,
+        sessionType: this.sessionType,
+        target: this.target,
         timeZone,
       };
       appUtils
-        .get({
-          url: "startsession",
+        .post({
+          url: "client/session/start",
           params,
         })
         .then((response) => {

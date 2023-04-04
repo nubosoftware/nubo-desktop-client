@@ -146,6 +146,9 @@ export default {
     appData,
   }),
   methods: {
+    /**
+     * Ask for user confirmation before resetting password
+     */
     resetPasswordClick: function () {
       this.resetPassword = true;
       this.messageText = this.$t("Are you sure you want to reset your password?");
@@ -164,7 +167,7 @@ export default {
       };
       appUtils
         .get({
-          url: "resetPasscode",
+          url: "client/password/reset",
           params,
         })
         .then((response) => {
@@ -182,19 +185,23 @@ export default {
             return;
           }
         })
-        .catch((error) => console.log(error))
+        .catch((error) => {          
+          console.log(error)})
         .finally(() => (this.loading = false));
     },
+
+    /**
+     * Submit the password to the server     
+     */
     submitSetPassword: function() {
       this.alertText = this.$t("Setting password");
       this.alertType = "info";
-      let params = {
-        loginToken: appData.loginToken,
+      let params = {        
         passcode: this.password,
       };
       appUtils
-        .get({
-          url: "setPasscode",
+        .post({
+          url: "client/password/set",
           params,
         })
         .then((response) => {
@@ -227,12 +234,12 @@ export default {
       this.alertType = "info";
       //var url = mgmtURL + "checkPasscode?loginToken=" + encodeURIComponent(loginToken) + "&passcode=" + encodeURIComponent(enterPasscode);
       let params = {
-        loginToken: appData.loginToken,
+        //loginToken: appData.loginToken,
         passcode: this.password,
       };
       appUtils
         .get({
-          url: "checkPasscode",
+          url: "client/password/check",
           params,
         })
         .then((response) => {
